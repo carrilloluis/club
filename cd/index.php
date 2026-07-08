@@ -31,16 +31,17 @@ global $rs;
     {
         $action2perform_ = @intval($_GET[QUERYSTRING_KEYWORD]) < 1 ? 1 : @intval($_GET[QUERYSTRING_KEYWORD]);
         switch ( $action2perform_ ) {
-            case 1 : { // LIST ALL
+            case 1 : {
                 $page_ = @intval($_GET['page_']) < 1 ? 1 : @intval($_GET['page_']);
                 $numberOf_ = @intval($_GET['nitems_']) < 1 ? 100 : @intval($_GET['nitems_']);
-
-                require_once 'LIST_ITEMS.php';
-                $rs = getAssociates($connection2db_, $page_, $numberOf_);
+                
+                # LIST_ITEMS per ID
+                require_once '.php';
+                $rs = getContactData($connection2db_, $id_, $page_, $numberOf_);
                 $HTTP_STATUS = 200;
                 break;
             }
-            case 2 : { // ID
+            case 2 : { 
                 $id_ = $_GET['requestedID'];
                 if (!is_numeric($id_)) {
                     http_response_code(403);
@@ -48,12 +49,13 @@ global $rs;
                     die( json_encode([ 'error' => 'parameters error on ID requested [ERROR]' ]));
                 }
 
-                require_once 'RTRV_BY_ID.php';
-                $rs = getAssociateById($connection2db_, @intval($id_));
+                # SPECIFIC data item from ASSOCIATE
+                require_once '.php';
+                $rs = getContactDataById($connection2db_, @intval($id_));
                 $HTTP_STATUS = 200;
                 break;
             }
-            case 3 : { // Search by TAG NAME
+            case 3 : { 
                 $querystring2search_ = @strval(explode(' ', $_GET['querySTR'])[0]);
                 if (strlen($querystring2search_) < 5) {
                     http_response_code(403);
@@ -61,13 +63,13 @@ global $rs;
                     die( json_encode([ 'error' => 'ERROR on parameters to SEARCH' ]));
                 }
 
-                require_once 'SRCH_TAGNAME.php';
-                $rs = getAssociatePerLastname($connection2db_, $querystring2search_);
+                # // Search
+                require_once '.php';
+                $rs = getContactDataByValue($connection2db_, $querystring2search_);
                 $HTTP_STATUS = 200;
                 break;
             }
             default : {
-                # $rs['request'] = $action2perform_;
                 break;
             }
         }
