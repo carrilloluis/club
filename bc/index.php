@@ -44,35 +44,95 @@ require_once 'ClassBC.php';
 					header(STANDARD_HEADER);
 					die( json_encode([ 'error' => 'parameters error on ID requested [ERROR]' ]));
 				}
-				
 				$rs = (new ClassBC($connection2db_))->getAdditionalPersonalData($id_, $page_, $numberOf_);
 				$HTTP_STATUS = 200;
 				break;
 			}
 			case 2 : {
-				$id_ = $_GET['requestedID'];
-				if (!is_numeric($id_)) {
+				$id_ = @intval($_GET['requestedID']);
+				if (!is_numeric($id_) || $id_ <= 0) {
 					http_response_code(403);
 					header(STANDARD_HEADER);
-					die( json_encode([ 'error' => 'parameters error on ID requested [ERROR]' ]));
+					die( json_encode([ 'error' => 'parameters erro on UNIQUE ID requested [ERROR]' ]));
 				}
-
-				require_once '.php';
-				$rs = getUniquePersonalDataById($connection2db_, @intval($id_));
+				$rs = (new ClassBC($connection2db_))->getUniquePersonalDataById($id_);
 				$HTTP_STATUS = 200; 
 				break;
 			}
 			case 3 : {
 				$querystring2search_ = @strval(explode(' ', $_GET['querySTR'])[0]);
-				if (strlen($querystring2search_) < 5) {
+				if (strlen($querystring2search_) < 3) {
 					http_response_code(403);
 					header(STANDARD_HEADER);
 					die( json_encode([ 'error' => 'ERROR on parameters to SEARCH' ]));
 				}
-
-				require_once '.php';
-				$rs = getPersonalDataByValue($connection2db_, $querystring2search_);
+				$rs = (new ClassBC($connection2db_))->getPersonalDataByValue($querystring2search_);
 				$HTTP_STATUS = 200;
+				break;
+			}
+			default : {
+				break;
+			}
+		}
+	}
+
+	if ($request_ === 'POST')
+	{
+		$receivedData = json_decode(file_get_contents(SOURCE_DATA), true);
+		if (json_last_error() != JSON_ERROR_NONE)
+		{
+			http_response_code(403);
+			header(STANDARD_HEADER);
+			die(json_encode([ 'error' => '[Error] on REGISTER ITEM' ]));
+		}
+		$action4post_ = !array_key_exists(QUERYSTRING_KEYWORD, $receivedData) ? 1 : @intval($receivedData[QUERYSTRING_KEYWORD]);
+
+		switch ( $action4post_ ) {
+			case 1 : {
+				if (!(
+					count($receivedData) >= 3 &&
+					isset($receivedData['id_']) &&
+					isset($receivedData['code_']) &&
+					isset($receivedData['value_'])
+				))
+				{
+					http_response_code(403);
+					header(STANDARD_HEADER);
+					die( json_encode([ 'error' => '[ERROR] on parameters onto NEW ITEM' ]));
+				}
+				$rs = (new ClassBC($connection2db_))->add($receivedData['id_'], $receivedData['code_'], $receivedData['value_']);
+				$HTTP_STATUS = 201;
+				break;
+			}
+			case 2 : {
+				if (!(
+					count($receivedData) >= 3 &&
+					isset($receivedData['id_']) &&
+					isset($receivedData['code_']) &&
+					isset($receivedData['value_'])
+				))
+				{
+					http_response_code(403);
+					header(STANDARD_HEADER);
+					die( json_encode([ 'error' => '[ERROR] on parameters updated ITEM' ]));
+				}
+
+				$rs = (new ClassBC($connection2db_))->update($receivedData['id_'], $receivedData['code_'], $receivedData['value_']);
+				$HTTP_STATUS = 200;
+				break;
+			}
+			case 3 : {
+				if (!(
+					count($receivedData) >= 1 &&
+					isset($receivedData['id_'])
+				))
+				{
+					http_response_code(403);
+					header(STANDARD_HEADER);
+					die( json_encode([ 'error' => '[ERROR] on disable ITEM' ]));
+				}
+				$rs = (new ClassBC($connection2db_))->disable($receivedData['id_']);
+				$HTTP_STATUS = 202;
 				break;
 			}
 			default : {
