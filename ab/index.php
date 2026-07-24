@@ -53,7 +53,7 @@ require_once 'ClassAB.php';
 				$HTTP_STATUS = 200;
 				break;
 			}
-			case 3 : { 
+			case 3 : {
 				$str2search_ = @strval(explode(' ', $_GET['querySTR'])[0]);
 				if (strlen($str2search_) < 3) {
 					http_response_code(403);
@@ -85,7 +85,7 @@ require_once 'ClassAB.php';
 		switch ( $action4post_ ) {
 			case 1 : {
 				if (!(
-					count($receivedData) >= 3 && isset($receivedData['fname_']) && 
+					count($receivedData) >= 3 && isset($receivedData['fname_']) &&
 					isset($receivedData['lname_']) && isset($receivedData['mlname_'])
 				))
 				{
@@ -99,19 +99,15 @@ require_once 'ClassAB.php';
 			}
 			case 2 : {
 				if (!(
-					count($receivedData) >= 4 &&
-					isset($receivedData['id_']) &&
-					
-					isset($receivedData['fname_']) &&
-					isset($receivedData['lname_']) &&
-					isset($receivedData['mlname_'])
+					count($receivedData) >= 4 && isset($receivedData['id_']) && isset($receivedData['fname_']) &&
+					isset($receivedData['lname_']) && isset($receivedData['mlname_'])
 				))
 				{
 					http_response_code(403);
 					header(STANDARD_HEADER);
 					die( json_encode([ 'error' => '[ERROR] on parameters updated ITEM' ]));
 				}
-				$rs = (new ClassAB($connection2db_))::update($receivedData);
+				$rs = (new ClassAB($connection2db_))->update($receivedData);
 				$HTTP_STATUS = 200;
 				break;
 			}
@@ -125,7 +121,7 @@ require_once 'ClassAB.php';
 					header(STANDARD_HEADER);
 					die( json_encode([ 'error' => '[ERROR] on disable ITEM' ]));
 				}
-				$rs = (new ClassAB($connection2db_))::disable($connection2db_, $receivedData['id_']);
+				$rs = (new ClassAB($connection2db_))->disable($connection2db_, $receivedData['id_']);
 				$HTTP_STATUS = 202;
 				break;
 			}
@@ -146,28 +142,15 @@ require_once 'ClassAB.php';
 		}
 
 		if (!(
-			count($receivedData) >= 5 &&
-			isset($receivedData['id_']) &&
-			isset($receivedData['doc_']) &&
-			isset($receivedData['fname_']) &&
-			isset($receivedData['lname_']) &&
-			isset($receivedData['mlname_'])
+			count($receivedData) >= 4 && isset($receivedData['id_']) && isset($receivedData['fname_']) &&
+			isset($receivedData['lname_']) && isset($receivedData['mlname_'])
 			))
 			{
 				http_response_code(403);
 				header(STANDARD_HEADER);
 				die( json_encode([ 'error' => '[ERROR] on parameters updated ITEM / HTTP PUT ' ]));
 			}
-
-			require_once 'UPDT_FIELDS.php';
-			$rs = updtAssociate(
-				$connection2db_,
-				$receivedData['id_'],
-				$receivedData['doc_'],
-				$receivedData['fname_'],
-				$receivedData['lname_'],
-				$receivedData['mlname_']
-			);
+			$rs = (new ClassAB($connection2db_))->update($receivedData);
 			$HTTP_STATUS = 200;
 	}
 
@@ -190,8 +173,14 @@ require_once 'ClassAB.php';
 			header(STANDARD_HEADER);
 			die( json_encode([ 'error' => '[ERROR] to disable ITEM - HTTP DELETE' ]));
 		}
-		require_once 'RMVE_ITEM.php';
-		$rs = disableAssociate($connection2db_, $receivedData['id_']);
+		$id_ = @intval($receivedData['id_']);
+		if (!is_numeric($id_)) {
+			http_response_code(403);
+			header(STANDARD_HEADER);
+			die( json_encode([ 'error' => 'Non ID requested [ERROR]' ]));
+		}
+		$rs = (new ClassAB($connection2db_))->disable($id_);
+		$HTTP_STATUS = 202;
 		$HTTP_STATUS = 202;
 	}
 
